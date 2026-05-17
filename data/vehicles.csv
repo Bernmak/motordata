@@ -1,0 +1,11 @@
+brand,model,version,year,price,kilometers,province,city,fuel,transmission,color,score,images
+Toyota,Corolla,XEI,2020,18500,65000,Buenos Aires,CABA,Nafta,Automática,Rojo,1.08,https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb¿
+Ford,Ranger,XLT,2021,32000,54000,Mendoza,Godoy Cruz,Diesel,Automática,No informado,1.12,/cars/ranger.jpg|https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1400&q=80
+Volkswagen,Golf,Highline,2018,21000,72000,Córdoba,Córdoba Capital,Nafta,Manual,No informado,0.91,https://images.unsplash.com/photo-1619767886558-efdc259cde1a
+Chevrolet,Cruze,LTZ,2019,17000,83000,Santa Fe,Rosario,Nafta,Automática,No informado,1.04,/placeholder-car.svg
+Fiat,Cronos,Precision,2022,14500,39000,Tucumán,San Miguel de Tucumán,Nafta,Manual,No informado,1.10,/placeholder-car.svg
+Renault,Sandero,Intens,2021,12500,58000,Buenos Aires,La Plata,Nafta,Manual,No informado,0.96,/placeholder-car.svg
+Peugeot,208,Feline,2023,19500,22000,Córdoba,Villa Carlos Paz,Nafta,Automática,No informado,1.15,/placeholder-car.svg
+Toyota,Hilux,SRV,2020,33500,76000,Salta,Salta Capital,Diesel,Manual,No informado,1.07,/placeholder-car.svg
+Volkswagen,Amarok,Highline,2021,36500,69000,Mendoza,San Rafael,Diesel,Automática,No informado,1.11,/placeholder-car.svg
+Ford,Focus,SE Plus,2018,15000,91000,Buenos Aires,Mar del Plata,Nafta,Manual,No informado,0.94,/placeholder-car.svg

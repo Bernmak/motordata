@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Imagen de vehículo no disponible">
+  <rect width="960" height="540" fill="#eef4fb"/>
+  <rect x="130" y="290" width="700" height="52" rx="26" fill="#063b75"/>
+  <path d="M238 290l74-92c18-22 44-35 73-35h186c31 0 60 15 78 41l59 86H238z" fill="#0b1f33"/>
+  <path d="M339 196h110v74H279l58-72c1-1 1-1 2-2zM477 196h94c20 0 39 10 51 27l32 47H477v-74z" fill="#f4f6f8"/>
+  <circle cx="298" cy="352" r="48" fill="#0b1f33"/>
+  <circle cx="298" cy="352" r="20" fill="#f5c400"/>
+  <circle cx="662" cy="352" r="48" fill="#0b1f33"/>
+  <circle cx="662" cy="352" r="20" fill="#f5c400"/>
+  <text x="480" y="438" fill="#52616f" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="middle">Imagen no disponible</text>
+</svg>
