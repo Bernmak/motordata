@@ -7,6 +7,7 @@ import {
   getStoredListings,
   toPublicVehicles,
 } from "@/utils/listings";
+import { fetchPublicRemoteListings } from "@/utils/listingsRemote";
 
 type PublicInventoryStatsProps = {
   vehicles: Vehicle[];
@@ -20,13 +21,55 @@ export default function PublicInventoryStats({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setApprovedVehicles(toPublicVehicles(getStoredListings()));
-      setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
-      setIsReady(true);
-    }, 0);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
+    async function loadPublishedVehicles() {
+      try {
+        const localListings = getStoredListings();
+        const remoteListings = process.env.NEXT_PUBLIC_SUPABASE_URL
+          ? await fetchPublicRemoteListings()
+          : [];
+
+        const approvedListings = [...localListings, ...remoteListings].filter(
+          (listing) => listing.publicationStatus === "approved"
+        );
+
+        const uniqueApprovedListings = Array.from(
+          new Map(
+            approvedListings.map((listing) => [
+              [
+                listing.brand,
+                listing.model,
+                listing.version,
+                listing.year,
+                listing.price,
+                listing.kilometers,
+                listing.city,
+              ].join("|"),
+              listing,
+            ])
+          ).values()
+        );
+
+        if (cancelled) return;
+
+        setApprovedVehicles(toPublicVehicles(uniqueApprovedListings));
+        setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
+        setIsReady(true);
+      } catch {
+        if (cancelled) return;
+
+        setApprovedVehicles(toPublicVehicles(getStoredListings()));
+        setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
+        setIsReady(true);
+      }
+    }
+
+    loadPublishedVehicles();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const visibleVehicles = useMemo(() => {
@@ -38,7 +81,8 @@ export default function PublicInventoryStats({
     const hiddenBaseIndexSet = new Set(hiddenBaseIndexes);
     const visibleBaseVehicles = vehicles.filter(
       (_vehicle, index) =>
-        !editedBaseIndexes.has(index) && !hiddenBaseIndexSet.has(index)
+        !editedBaseIndexes.has(index) &&
+        !hiddenBaseIndexSet.has(index)
     );
 
     return [...approvedVehicles, ...visibleBaseVehicles];

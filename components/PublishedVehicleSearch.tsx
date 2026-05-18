@@ -76,32 +76,18 @@ export default function PublishedVehicleSearch({
   }, [vehicles]);
 
   const visibleBaseVehicles = useMemo(() => {
-  const makeKey = (vehicle: Vehicle) =>
-    [
-      vehicle.brand,
-      vehicle.model,
-      vehicle.version,
-      vehicle.year,
-      vehicle.kilometers,
-      vehicle.city,
-    ]
-      .join("|")
-      .toLowerCase();
-
   const editedBaseIndexes = new Set(
     approvedVehicles
       .map((vehicle) => vehicle.sourceBaseIndex)
       .filter((index): index is number => index !== undefined)
   );
 
-  const editedBaseKeys = new Set(approvedVehicles.map(makeKey));
   const hiddenBaseIndexSet = new Set(hiddenBaseIndexes);
 
   return vehicles.filter(
-    (vehicle, index) =>
+    (_vehicle, index) =>
       !editedBaseIndexes.has(index) &&
-      !hiddenBaseIndexSet.has(index) &&
-      !editedBaseKeys.has(makeKey(vehicle))
+      !hiddenBaseIndexSet.has(index)
   );
 }, [approvedVehicles, hiddenBaseIndexes, vehicles]);
 

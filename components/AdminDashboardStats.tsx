@@ -7,6 +7,7 @@ import {
   getStoredListings,
   type ManagedVehicle,
 } from "@/utils/listings";
+import { fetchRemoteListings } from "@/utils/listingsRemote";
 
 type AdminDashboardStatsProps = {
   vehicles: Vehicle[];
@@ -21,12 +22,43 @@ export default function AdminDashboardStats({
   const [hiddenBaseIndexes, setHiddenBaseIndexes] = useState<number[]>([]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setListings(getStoredListings());
-      setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
-    }, 0);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
+    async function loadDashboardVehicles() {
+      const localListings = getStoredListings();
+
+      try {
+        const remoteListings = process.env.NEXT_PUBLIC_SUPABASE_URL
+          ? await fetchRemoteListings()
+          : [];
+        const mergedListings = Array.from(
+          new Map(
+            [...localListings, ...remoteListings].map((listing) => [
+              listing.id,
+              listing,
+            ])
+          ).values()
+        );
+
+        if (cancelled) return;
+
+        setListings(mergedListings);
+      } catch {
+        if (cancelled) return;
+
+        setListings(localListings);
+      }
+
+      if (cancelled) return;
+
+      setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
+    }
+
+    loadDashboardVehicles();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const dashboardVehicles = useMemo(() => {
