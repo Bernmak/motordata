@@ -26,12 +26,11 @@ export default function PublishedVehicleSearch({
 
     async function loadPublishedVehicles() {
       try {
-        const localListings = getStoredListings();
-        const remoteListings = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const listings = process.env.NEXT_PUBLIC_SUPABASE_URL
           ? await fetchPublicRemoteListings()
-          : [];
+          : getStoredListings();
 
-        const approvedListings = [...localListings, ...remoteListings].filter(
+        const approvedListings = listings.filter(
           (listing) => listing.publicationStatus === "approved"
         );
 
@@ -86,6 +85,7 @@ export default function PublishedVehicleSearch({
 
   return vehicles.filter(
     (_vehicle, index) =>
+      !process.env.NEXT_PUBLIC_SUPABASE_URL &&
       !editedBaseIndexes.has(index) &&
       !hiddenBaseIndexSet.has(index)
   );

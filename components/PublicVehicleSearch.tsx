@@ -80,6 +80,7 @@ const optionLabels: Record<string, string> = {
   priceDesc: "Mayor precio",
   kmAsc: "Menor kilometraje",
   yearDesc: "Año más reciente",
+  "Ciudad Autónoma de Buenos Aires": "CABA",
 };
 
 const publicFuelOptions = [
@@ -100,6 +101,18 @@ const normalize = (value: string) =>
 
 const matchesOption = (value: string, filter: string) =>
   !filter || normalize(value) === normalize(filter);
+
+const hasDisplayValue = (value: string | number | undefined | null) =>
+  value !== undefined &&
+  value !== null &&
+  String(value).trim() !== "" &&
+  normalize(String(value)) !== "no informado";
+
+const displayValue = (value: string | number | undefined | null) =>
+  hasDisplayValue(value) ? String(value) : "";
+
+const displayProvince = (value: string) =>
+  normalize(value) === "ciudad autonoma de buenos aires" ? "CABA" : value;
 
 const capitalFederalAliases = new Set([
   "capital",
@@ -223,8 +236,6 @@ function RangeSelectField({
 }
 
 function DetailItem({ label, value }: { label: string; value: string }) {
-  const isMissing = value === "No informado";
-
   return (
     <div className="flex h-20 flex-col justify-center rounded-xl bg-[#f8fafc] px-4 py-3 ring-1 ring-gray-200">
       <p className="line-clamp-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -233,7 +244,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <p
         className={[
           "mt-1 text-base font-bold",
-          isMissing ? "text-slate-400" : "text-[#0b1f33]",
+          "text-[#0b1f33]",
         ].join(" ")}
       >
         {value}
@@ -250,13 +261,8 @@ const tabClass = (active: boolean) =>
       : "bg-white text-[#003b70] ring-2 ring-[#ffcc00] hover:bg-[#fff7cc]",
   ].join(" ");
 
-const optionalValue = (value: string | number | undefined | null) => {
-  if (value === undefined || value === null || value === "") return "No informado";
-  return String(value);
-};
-
 function getContactSummary(car: Vehicle) {
-  return car.sellerName || car.contactName || car.contact || "No informado";
+  return car.sellerName || car.contactName || car.contact || "";
 }
 
 function getContactHref(car: Vehicle) {
@@ -539,9 +545,13 @@ function VehicleDetailModal({
               <p className="mt-2 text-4xl font-semibold text-[#0b1f33]">
                 {formatPrice(car.price)}
               </p>
-              <p className="mt-3 text-sm font-medium text-gray-600">
-                {car.city}, {car.province}
-              </p>
+              {(hasDisplayValue(car.city) || hasDisplayValue(car.province)) && (
+                <p className="mt-3 text-sm font-medium text-gray-600">
+                  {[displayValue(car.city), displayProvince(displayValue(car.province))]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
+              )}
               <p className="mt-4 text-sm font-medium text-gray-600">
                 {car.year} · {car.kilometers.toLocaleString("es-AR")} km ·{" "}
                 {car.fuel}
@@ -566,15 +576,16 @@ function VehicleDetailModal({
   </p>
 </div>
 
-              <div className="mt-4 max-h-[130px] overflow-y-auto rounded-2xl border border-gray-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                  Descripción
-                </p>
-                <p className="mt-2">
-                  {optionalValue(car.description)}
-                </p>
-              </div>
+              {hasDisplayValue(car.description) && (
+                <div className="mt-4 max-h-[130px] overflow-y-auto rounded-2xl border border-gray-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                    Descripción
+                  </p>
+                  <p className="mt-2">{displayValue(car.description)}</p>
+                </div>
+              )}
 
+              {(contactHref || hasDisplayValue(contactSummary)) && (
               <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm">
   <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-blue-700">
     Contacto
@@ -591,41 +602,42 @@ function VehicleDetailModal({
     </a>
   ) : (
     <p className="text-sm font-bold text-[#0b1f33]">
-      {optionalValue(contactSummary)}
+      {displayValue(contactSummary)}
     </p>
   )}
 
   {contactHref && (
     <div className="mt-4 space-y-2 rounded-xl bg-white px-3 py-2 ring-1 ring-blue-100">
-      <div>
+      {hasDisplayValue(contactSummary) && <div>
         <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
           Vendedor
         </p>
         <p className="mt-1 text-sm font-black text-slate-900">
-          {optionalValue(contactSummary)}
+          {displayValue(contactSummary)}
         </p>
-      </div>
+      </div>}
 
-      <div>
+      {hasDisplayValue(car.whatsapp || car.contactPhone) && <div>
         <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
           WhatsApp / Teléfono
         </p>
         <p className="mt-1 text-sm font-bold text-slate-800">
-          {optionalValue(car.whatsapp || car.contactPhone)}
+          {displayValue(car.whatsapp || car.contactPhone)}
         </p>
-      </div>
+      </div>}
 
-      <div>
+      {hasDisplayValue(car.contactEmail) && <div>
         <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
           Email
         </p>
         <p className="mt-1 break-all text-sm font-bold text-slate-800">
-          {optionalValue(car.contactEmail)}
+          {displayValue(car.contactEmail)}
         </p>
-      </div>
+      </div>}
     </div>
   )}
 </div>
+)}
             </div>
 
             <div ref={tabContentRef}>
@@ -655,31 +667,42 @@ function VehicleDetailModal({
 
               {activeTab === "basic" && (
                 <div className={detailPanelClass}>
-                  <DetailItem label="Marca" value={car.brand} />
-                  <DetailItem label="Modelo" value={car.model} />
-                  <DetailItem label="Versión" value={car.version} />
-                  <DetailItem label="Año" value={String(car.year)} />
-                  <DetailItem
-                    label="Kilómetros"
-                    value={`${car.kilometers.toLocaleString("es-AR")} km`}
-                  />
-                  <DetailItem label="Combustible" value={car.fuel} />
-                  <DetailItem label="Provincia" value={car.province} />
-                  <DetailItem label="Ciudad" value={car.city} />
-                  <DetailItem label="Ubicación exacta" value={optionalValue(car.exactLocation)} />
+                  {[
+                    { label: "Marca", value: car.brand },
+                    { label: "Modelo", value: car.model },
+                    { label: "Versión", value: car.version },
+                    { label: "Año", value: car.year },
+                    {
+                      label: "Kilómetros",
+                      value: car.kilometers
+                        ? `${car.kilometers.toLocaleString("es-AR")} km`
+                        : "",
+                    },
+                    { label: "Combustible", value: car.fuel },
+                    { label: "Provincia", value: displayProvince(car.province) },
+                    { label: "Ciudad", value: car.city },
+                    {
+                      label: "Ubicación exacta",
+                      value: car.exactLocation || car.location,
+                    },
+                  ]
+                    .filter((item) => hasDisplayValue(item.value))
+                    .map((item) => (
+                      <DetailItem
+                        key={item.label}
+                        label={item.label}
+                        value={displayValue(item.value)}
+                      />
+                    ))}
                 </div>
               )}
 
               {activeTab === "additional" && (
                 <div className={detailPanelClass}>
-                  <DetailItem
-                    label="Transmisión"
-                    value={optionalValue(car.transmission)}
-                  />
-                  <DetailItem label="Color" value={optionalValue(car.color)} />
-
                   {(() => {
                     const additionalItems = [
+                      { label: "Transmisión", value: car.transmission },
+                      { label: "Color", value: car.color },
                       { label: "Puertas", value: car.doors },
                       { label: "Dueños", value: car.owners },
                       { label: "Estado", value: car.estado },
@@ -689,9 +712,7 @@ function VehicleDetailModal({
                         label: "Inspección técnica",
                         value: car.inspeccionTecnica,
                       },
-                    ].filter(
-                      (item) => optionalValue(item.value) !== "No informado"
-                    );
+                    ].filter((item) => hasDisplayValue(item.value));
 
                     if (additionalItems.length === 0) {
                       return null;
@@ -701,7 +722,7 @@ function VehicleDetailModal({
                       <DetailItem
                         key={item.label}
                         label={item.label}
-                        value={optionalValue(item.value)}
+                        value={displayValue(item.value)}
                       />
                     ));
                   })()}
@@ -748,29 +769,17 @@ function VehicleDetailModal({
                         label: "Dirección asistida",
                         value: car.direccionAsistida,
                       },
-                    ].filter(
-                      (item) => optionalValue(item.value) !== "No informado"
-                    );
+                    ].filter((item) => hasDisplayValue(item.value));
 
                     if (advancedItems.length === 0) {
-                      return (
-                        <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                          <p className="text-sm font-black text-slate-700">
-                            Equipamiento no informado
-                          </p>
-                          <p className="mt-1 text-sm text-slate-500">
-                            El vendedor todavía no cargó detalles de
-                            equipamiento avanzado.
-                          </p>
-                        </div>
-                      );
+                      return null;
                     }
 
                     return advancedItems.map((item) => (
                       <DetailItem
                         key={item.label}
                         label={item.label}
-                        value={optionalValue(item.value)}
+                        value={displayValue(item.value)}
                       />
                     ));
                   })()}
@@ -850,7 +859,7 @@ function VehicleResultCard({
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 shadow-sm">
               <p className="font-bold text-gray-500">Ubicación</p>
-              <p className="mt-1 font-extrabold">{car.province}</p>
+              <p className="mt-1 font-extrabold">{displayProvince(car.province)}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 shadow-sm">
               <p className="font-bold text-gray-500">Combustible</p>
@@ -863,9 +872,18 @@ function VehicleResultCard({
           </div>
 
           <div className="mt-5 flex flex-col gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="min-w-0 text-sm text-gray-500">
-              {car.city} · Color {car.color.toLowerCase()}
-            </p>
+            {(hasDisplayValue(car.city) || hasDisplayValue(car.color)) && (
+              <p className="min-w-0 text-sm text-gray-500">
+                {[
+                  displayValue(car.city),
+                  hasDisplayValue(car.color)
+                    ? `Color ${displayValue(car.color).toLowerCase()}`
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
             <div className="flex shrink-0 flex-col gap-2 sm:ml-auto sm:flex-row sm:justify-end">
               <button
                 type="button"
@@ -1182,7 +1200,7 @@ const openDetailAtImage = (car: Vehicle) => {
                     value={filters.city}
                     placeholder="Todas"
                     onChange={(event) => setFilter("city", event.target.value)}
-                    className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm outline-none transition placeholder:text-gray-400 focus:border-[#063b75] focus:ring-2 focus:ring-[#063b75]/10"
+                    className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-[#0b1f33] outline-none transition placeholder:text-[#0b1f33] focus:border-[#063b75] focus:ring-2 focus:ring-[#063b75]/10"
                   />
                 </label>
                 <SelectField
@@ -1231,18 +1249,18 @@ const openDetailAtImage = (car: Vehicle) => {
               score.
             </p>
 
-            <div className="flex gap-3">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="w-full rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 sm:w-auto"
               >
                 Limpiar
               </button>
               <button
                 type="button"
                 onClick={searchVehicles}
-                className="rounded-xl bg-[#ffc400] px-8 py-3 text-sm font-medium text-[#0b1f33] shadow-md transition hover:bg-[#e5b800] hover:shadow-lg"
+                className="w-full rounded-xl bg-[#ffc400] px-8 py-3 text-sm font-medium text-[#0b1f33] shadow-md transition hover:bg-[#e5b800] hover:shadow-lg sm:w-auto"
               >
                 Buscar vehículos
               </button>
