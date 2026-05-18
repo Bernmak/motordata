@@ -74,6 +74,15 @@ const optionLabels: Record<string, string> = {
   deleted: "Borrado",
 };
 
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <span className="mb-1 inline-flex items-center gap-1 text-sm font-bold text-gray-700">
+      {required && <span className="text-red-600">*</span>}
+      <span>{label}</span>
+    </span>
+  );
+}
+
 function SelectField({
   label,
   name,
@@ -95,10 +104,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-bold text-gray-700">
-        {label}
-        {required && <span className="ml-1 text-red-600">*</span>}
-      </span>
+      <FieldLabel label={label} required={required} />
       <select
         name={name}
         required={required}
@@ -136,10 +142,7 @@ function TextField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-bold text-gray-700">
-        {label}
-        {required && <span className="ml-1 text-red-600">*</span>}
-      </span>
+      <FieldLabel label={label} required={required} />
       <input
         name={name}
         type={type}

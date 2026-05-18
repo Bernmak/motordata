@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#2f3742] text-[#0b1f33]">
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-5 text-center sm:flex-row sm:text-left">
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-[#f5c400]">
               Motordata
@@ -18,7 +18,7 @@ export default function Home() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             <a
               href="#buscar"
               className="rounded-full bg-[#f5c400] px-5 py-2 text-sm font-medium text-[#0b1f33] transition hover:bg-[#e5b800]"
@@ -45,7 +45,7 @@ export default function Home() {
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200">
           <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="p-8 lg:p-10">
-              <span className="inline-flex rounded-full bg-[#f5c400] px-4 py-2 text-sm font-medium text-[#0b1f33]">
+              <span className="mx-auto inline-flex rounded-full bg-[#f5c400] px-4 py-2 text-sm font-medium text-[#0b1f33] sm:mx-0">
                 Compra inteligente de vehículos
               </span>
 
@@ -58,7 +58,7 @@ export default function Home() {
                 score para tomar una decisión con más contexto.
               </p>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <Link
                   href="/vender"
                   className="rounded-xl bg-[#063b75] px-5 py-3 text-center text-sm font-medium text-white transition hover:bg-[#052f5f]"

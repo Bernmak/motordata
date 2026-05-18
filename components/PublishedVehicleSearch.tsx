@@ -34,24 +34,7 @@ export default function PublishedVehicleSearch({
           (listing) => listing.publicationStatus === "approved"
         );
 
-        const uniqueApprovedListings = Array.from(
-          new Map(
-            approvedListings.map((listing) => [
-              [
-                listing.brand,
-                listing.model,
-                listing.version,
-                listing.year,
-                listing.price,
-                listing.kilometers,
-                listing.city,
-              ].join("|"),
-              listing,
-            ])
-          ).values()
-        );
-
-        const publishedVehicles = toPublicVehicles(uniqueApprovedListings);
+        const publishedVehicles = toPublicVehicles(approvedListings);
 
         if (cancelled) return;
 

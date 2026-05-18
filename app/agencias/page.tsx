@@ -5,6 +5,15 @@ import { useMemo, useState } from "react";
 
 const whatsappNumber = "5491158985726";
 
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <span className="mb-1 inline-flex items-center gap-1 text-sm font-bold text-gray-700">
+      {required && <span className="text-red-600">*</span>}
+      <span>{label}</span>
+    </span>
+  );
+}
+
 function Field({
   label,
   name,
@@ -24,10 +33,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-bold text-gray-700">
-        {label}
-        {required && <span className="ml-1 text-red-600">*</span>}
-      </span>
+      <FieldLabel label={label} required={required} />
       <input
         name={name}
         value={value}

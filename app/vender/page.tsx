@@ -93,13 +93,13 @@ export default function VenderPage() {
             </Link>
             <a
               href="#como-funciona"
-              className="rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-center text-sm font-bold text-white transition hover:bg-white/20"
+              className="rounded-xl border border-white bg-white px-6 py-3 text-center text-sm font-bold text-[#063b75] transition hover:bg-white/90"
             >
               Cómo funciona
             </a>
             <Link
               href="/agencias"
-              className="rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-center text-sm font-bold text-white transition hover:bg-white/20"
+              className="rounded-xl border border-white bg-white px-6 py-3 text-center text-sm font-bold text-[#063b75] transition hover:bg-white/90"
             >
               Soy agencia
             </Link>

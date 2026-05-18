@@ -88,6 +88,15 @@ const requiredFieldLabels: Record<string, string> = {
   vendedor: "Vendedor",
 };
 
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <span className="mb-1 inline-flex items-center gap-1 text-sm font-semibold text-gray-700">
+      {required && <span className="text-red-600">*</span>}
+      <span>{label}</span>
+    </span>
+  );
+}
+
 function normalizePhone(value: string) {
   return value.replace(/\D/g, "");
 }
@@ -121,10 +130,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-semibold text-gray-700">
-        {label}
-        {required && <span className="ml-1 text-red-600">*</span>}
-      </span>
+      <FieldLabel label={label} required={required} />
       <select
         name={name}
         required={required}
@@ -161,10 +167,7 @@ function TextField({
 }) {
   return (
     <label className={`block ${className}`.trim()}>
-      <span className="mb-1 block text-sm font-semibold text-gray-700">
-        {label}
-        {required && <span className="ml-1 text-red-600">*</span>}
-      </span>
+      <FieldLabel label={label} required={required} />
       <input
         name={name}
         type={type}
@@ -582,9 +585,7 @@ window.scrollTo({ top: 0, behavior: "smooth" });
                 <TextField label="Dueños" name="owners" type="number" />
 
                 <label className="block md:col-span-3">
-                  <span className="mb-1 block text-sm font-semibold text-gray-700">
-                    Descripción <span className="ml-1 text-red-600">*</span>
-                  </span>
+                  <FieldLabel label="Descripción" required />
                   <textarea
                     name="description"
                     required

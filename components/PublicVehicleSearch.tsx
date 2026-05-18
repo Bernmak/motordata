@@ -12,6 +12,7 @@ import {
   versionesPorModelo,
 } from "@/data/catalogs";
 import { getScoreLabel } from "@/utils/score";
+import { formatDateOnly } from "@/utils/dates";
 
 type Filters = {
   brand: string;
@@ -710,7 +711,7 @@ function VehicleDetailModal({
                       { label: "Garantía", value: car.garantia },
                       {
                         label: "Inspección técnica",
-                        value: car.inspeccionTecnica,
+                        value: formatDateOnly(car.inspeccionTecnica),
                       },
                     ].filter((item) => hasDisplayValue(item.value));
 

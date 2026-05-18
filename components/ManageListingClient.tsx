@@ -12,6 +12,7 @@ import {
   type ManagedVehicle,
 } from "@/utils/listings";
 import { deleteRemoteListing, updateRemoteListing } from "@/utils/listingsRemote";
+import { formatDateOnly } from "@/utils/dates";
 
 type ManageListingClientProps = {
   listingId: string;
@@ -236,7 +237,7 @@ export default function ManageListingClient({ listingId }: ManageListingClientPr
   ["Dueños", "owners", listing.owners],
   ["Vendedor", "vendedor", listing.vendedor],
   ["Garantía", "garantia", listing.garantia],
-  ["Inspección técnica", "inspeccionTecnica", listing.inspeccionTecnica],
+  ["Inspección técnica", "inspeccionTecnica", formatDateOnly(listing.inspeccionTecnica)],
   ["Tracción", "traccion", listing.traccion],
   ["Aire acondicionado", "airConditioning", listing.airConditioning],
   ["Techo panorámico", "techoPanoramico", listing.techoPanoramico],

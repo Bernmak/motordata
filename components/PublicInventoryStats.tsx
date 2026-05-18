@@ -33,26 +33,9 @@ export default function PublicInventoryStats({
           (listing) => listing.publicationStatus === "approved"
         );
 
-        const uniqueApprovedListings = Array.from(
-          new Map(
-            approvedListings.map((listing) => [
-              [
-                listing.brand,
-                listing.model,
-                listing.version,
-                listing.year,
-                listing.price,
-                listing.kilometers,
-                listing.city,
-              ].join("|"),
-              listing,
-            ])
-          ).values()
-        );
-
         if (cancelled) return;
 
-        setApprovedVehicles(toPublicVehicles(uniqueApprovedListings));
+        setApprovedVehicles(toPublicVehicles(approvedListings));
         setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
         setIsReady(true);
       } catch {

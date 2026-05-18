@@ -6,6 +6,7 @@ import type { Vehicle } from "@/types/vehicle";
 import VehicleImage from "@/components/VehicleImage";
 import { getStoredListings, type ManagedVehicle } from "@/utils/listings";
 import { fetchRemoteListings } from "@/utils/listingsRemote";
+import { formatDateOnly } from "@/utils/dates";
 
 type AdminVehicleDetailClientProps = {
   vehicleId: string;
@@ -138,7 +139,7 @@ useEffect(() => {
   { label: "Dueños", value: vehicle.owners },
   { label: "Vendedor", value: vehicle.vendedor },
   { label: "Garantía", value: vehicle.garantia },
-  { label: "Inspección técnica", value: vehicle.inspeccionTecnica },
+  { label: "Inspección técnica", value: formatDateOnly(vehicle.inspeccionTecnica) },
 
   { label: "Aire acondicionado", value: vehicle.airConditioning },
   { label: "Tracción", value: vehicle.traccion },
@@ -174,9 +175,9 @@ useEffect(() => {
   { label: "Email visible", value: vehicle.contactEmail },
   { label: "Contacto visible", value: vehicle.contact },
  { label: "Estado publicación", value: vehicle.publicationStatus === "approved" ? "Aprobado" : vehicle.publicationStatus === "pending" ? "Pendiente" : vehicle.publicationStatus },
-  { label: "Creado", value: vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "No informado" },
-{ label: "Aprobado", value: vehicle.approvedAt ? new Date(vehicle.approvedAt).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "No informado" },
-{ label: "Actualizado", value: vehicle.updatedAt ? new Date(vehicle.updatedAt).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "No informado" },
+  { label: "Creado", value: formatDateOnly(vehicle.createdAt) || "No informado" },
+{ label: "Aprobado", value: formatDateOnly(vehicle.approvedAt) || "No informado" },
+{ label: "Actualizado", value: formatDateOnly(vehicle.updatedAt) || "No informado" },
 ];
 
   return (
