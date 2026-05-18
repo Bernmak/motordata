@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import PaymentCheckoutButton from "@/components/PaymentCheckoutButton";
-import { publicPaymentPlans } from "@/data/paymentPlans";
 
 export const metadata: Metadata = {
   title: "Vendé tu vehículo | Motordata",
@@ -165,43 +163,27 @@ export default function VenderPage() {
           </div>
         </div>
 
-        <section className="mt-8">
-          <div className="mb-5">
-            <p className="text-sm font-black uppercase tracking-wide text-[#f5c400]">
-              Opciones pagas
-            </p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight text-white">
-              Cobrá visibilidad cuando quieras destacar una publicación.
-            </h2>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-white/70">
-              El alta general puede seguir siendo gratis por lanzamiento. Estos
-              planes sirven para probar cobros integrados con Mercado Pago y
-              vender beneficios comerciales.
-            </p>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {publicPaymentPlans.map((plan) => (
-              <article
-                key={plan.id}
-                className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
-              >
-                <p className="text-sm font-black uppercase tracking-wide text-[#f5c400]">
-                  {plan.title}
-                </p>
-                <p className="mt-3 text-3xl font-black text-[#0b1f33]">
-                  $ {plan.price.toLocaleString("es-AR")}
-                </p>
-                <p className="mt-3 text-sm leading-6 text-gray-600">
-                  {plan.description}
-                </p>
-                <PaymentCheckoutButton
-                  planId={plan.id}
-                  label="Pagar con Mercado Pago"
-                  className="mt-5 w-full rounded-xl bg-[#063b75] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#052f5f] disabled:cursor-not-allowed disabled:bg-gray-400"
-                />
-              </article>
-            ))}
+        <section className="mt-8 overflow-hidden rounded-3xl bg-[#063b75] text-white shadow-lg">
+          <div className="grid md:grid-cols-[1fr_auto]">
+            <div className="flex flex-col justify-center p-6 md:p-8 md:pt-6">
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-[#f5c400]">
+                Lanzamiento Motordata
+              </p>
+              <h2 className="mt-2 max-w-3xl text-3xl font-black leading-tight tracking-tight md:text-4xl">
+                Publicá gratis por tiempo limitado.
+              </h2>
+              <p className="mt-3 max-w-3xl text-base leading-7 text-blue-100">
+                La carga, revisión y publicación inicial no tienen costo. Más
+                adelante sumaremos opciones destacadas cuando haya más inventario
+                activo.
+              </p>
+            </div>
+            <div className="flex flex-col justify-center bg-[#f5c400] px-8 py-6 text-[#0b1f33] md:min-w-56">
+              <span className="text-sm font-black uppercase tracking-wide">
+                Costo actual
+              </span>
+              <span className="text-5xl font-black leading-none">$0</span>
+            </div>
           </div>
         </section>
       </section>

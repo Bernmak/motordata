@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import PaymentCheckoutButton from "@/components/PaymentCheckoutButton";
 import {
   combustiblesArgentina,
   coloresAutomotor,
@@ -418,18 +417,30 @@ window.scrollTo({ top: 0, behavior: "smooth" });
                 </p>
               )}
             </div>
-            <div className="mt-5 rounded-xl bg-white/70 p-4 ring-1 ring-emerald-200">
-              <p className="text-sm font-semibold text-[#0f5132]">
-                ¿Querés destacarlo cuando se apruebe?
-              </p>
-              <p className="mt-1 text-sm leading-6 text-[#0f5132]">
-                Podés iniciar el pago de publicación destacada con Mercado Pago.
-              </p>
-              <PaymentCheckoutButton
-                planId="publication_featured"
-                label="Pagar destacado"
-                className="mt-3 rounded-xl bg-[#063b75] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#052f5f] disabled:cursor-not-allowed disabled:bg-gray-400"
-              />
+            <div className="mt-5 overflow-hidden rounded-2xl bg-[#063b75] text-white shadow-lg ring-1 ring-emerald-200">
+              <div className="grid gap-0 sm:grid-cols-[1fr_auto]">
+                <div className="p-5">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5c400]">
+                    Lanzamiento Motordata
+                  </p>
+                  <h3 className="mt-2 text-2xl font-black leading-tight">
+                    Publicación gratis por tiempo limitado
+                  </h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100">
+                    Tu anuncio entra a revisión sin costo. Cuando esté aprobado,
+                    va a poder aparecer en el buscador público y vas a recibir el
+                    enlace para editarlo o borrarlo.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center bg-[#f5c400] px-6 py-5 text-center text-[#0b1f33]">
+                  <div>
+                    <p className="text-4xl font-black">$0</p>
+                    <p className="mt-1 text-xs font-black uppercase tracking-wide">
+                      Ahora
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -440,33 +451,47 @@ window.scrollTo({ top: 0, behavior: "smooth" });
           </div>
         )}
 
-        <div className="mb-6 grid gap-5 lg:grid-cols-[1fr_360px]">
+        <div className="mb-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(420px,520px)] lg:items-stretch">
           <div>
            <p className="text-sm font-medium uppercase tracking-wide text-[#f5c400]">
               Venta particular
             </p>
-            <h2 className="mt-2 text-4xl font-semibold tracking-tight text-white">
+            <h2 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-white">
               Cargá los datos y fotos del auto.
             </h2>
             <p className="mt-3 w-fit rounded-full bg-[#f5c400] px-4 py-2 text-sm font-medium text-[#0b1f33]">
               Publicación gratis por lanzamiento
             </p>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-white/75">
-              La publicación no aparece automáticamente en el buscador: primero
-              pasa por revisión interna para validar datos, imágenes y calidad
-              de la ficha.
+            <p className="mt-3 max-w-2xl text-base leading-7 text-white/75">
+              Tu anuncio pasa por revisión antes de aparecer en el buscador.
             </p>
           </div>
 
-          <div className="rounded-2xl bg-[#063b75] p-5 text-white">
-            <p className="text-sm font-medium uppercase tracking-wide text-[#f5c400]">
-              Proceso de publicación gratis
-            </p>
-            <p className="mt-3 text-sm leading-6 text-blue-100">
-              El anuncio se publicara después de la revisión interna para
-              validar información, imágenes y calidad de la ficha.
-            </p>
-          </div>
+          <section
+            id="gratis-lanzamiento"
+            className="overflow-hidden rounded-2xl bg-[#063b75] text-white shadow-lg"
+          >
+            <div className="grid h-full sm:grid-cols-[1fr_auto]">
+              <div className="flex flex-col justify-center p-5 pt-3">
+                <p className="text-sm font-black uppercase tracking-[0.16em] text-[#f5c400]">
+                  Lanzamiento Motordata
+                </p>
+                <h3 className="mt-2 text-[1.7rem] font-black leading-[1.05]">
+                  Publicá gratis por tiempo limitado
+                </h3>
+                <p className="mt-2 text-base leading-6 text-blue-100">
+                  La carga, revisión y publicación inicial no tienen costo.
+                  Más adelante sumaremos opciones destacadas.
+                </p>
+              </div>
+              <div className="flex flex-col justify-center bg-[#f5c400] px-6 py-4 text-[#0b1f33]">
+                <span className="text-sm font-black uppercase tracking-wide">
+                  Costo actual
+                </span>
+                <span className="text-[2.7rem] font-black leading-none">$0</span>
+              </div>
+            </div>
+          </section>
         </div>
 
         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-12 gap-5">
@@ -766,6 +791,7 @@ window.scrollTo({ top: 0, behavior: "smooth" });
                 el buscador público.
               </p>
             </section>
+
           </aside>
 
           <div className="col-span-12 flex flex-col gap-3 sm:flex-row sm:justify-end">
