@@ -82,7 +82,7 @@ export default function Home() {
               <PublicInventoryStats vehicles={vehicles} />
             </div>
 
-            <div className="relative min-h-80 bg-[#063b75]">
+            <div className="relative min-h-80 overflow-hidden bg-[#063b75] lg:rounded-bl-[28px]">
               <Image
                 src="/images/hero-car-search-improved.png"
                 alt="Fila de autos en venta para comparar en Motordata"
