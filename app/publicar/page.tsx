@@ -66,8 +66,41 @@ const priceOptions = [
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const supabaseIsConfigured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
 
+const requiredFieldLabels: Record<string, string> = {
+  brand: "Marca",
+  model: "Modelo",
+  version: "Versión",
+  year: "Año",
+  price: "Precio pretendido",
+  kilometers: "Kilómetros",
+  fuel: "Combustible",
+  transmission: "Transmisión",
+  province: "Provincia",
+  city: "Ciudad",
+  location: "Ubicación exacta",
+  color: "Color",
+  description: "Descripción",
+  ownerEmail: "Email para recibir aprobación",
+  contactName: "Nombre de contacto visible",
+  contactPhone: "WhatsApp o teléfono visible",
+  securityPassword: "Contraseña de seguridad",
+  securityPasswordConfirm: "Repetir contraseña",
+  estado: "Estado",
+  vendedor: "Vendedor",
+};
+
 function normalizePhone(value: string) {
   return value.replace(/\D/g, "");
+}
+
+function getMissingRequiredField(form: HTMLFormElement) {
+  const requiredFields = Array.from(
+    form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+      "input[required], select[required], textarea[required]"
+    )
+  );
+
+  return requiredFields.find((field) => !field.disabled && !field.value.trim());
 }
 
 function SelectField({
@@ -167,9 +200,20 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     setFormError("");
 
     const form = event.currentTarget;
+    const missingField = getMissingRequiredField(form);
+
+    if (missingField) {
+      const label = requiredFieldLabels[missingField.name] || "un campo obligatorio";
+      setFormError(`Completá el campo obligatorio: ${label}.`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      missingField.focus();
+      return;
+    }
+
     const formData = new FormData(form);
     const password = String(formData.get("securityPassword") || "");
     const passwordConfirm = String(formData.get("securityPasswordConfirm") || "");
+    const ownerEmail = String(formData.get("ownerEmail") || "").trim();
     const contactName = String(formData.get("contactName") || "").trim();
     const contactPhone = String(formData.get("contactPhone") || "").trim();
     const contactEmail = String(formData.get("contactEmail") || "").trim();
@@ -177,26 +221,37 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (password.length < 8) {
       setFormError("La contraseña de seguridad debe tener al menos 8 caracteres.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     if (password !== passwordConfirm) {
       setFormError("Las contraseñas de seguridad no coinciden.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     if (!contactName) {
       setFormError("Ingresá el nombre de contacto visible.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     if (contactPhoneDigits.length < 8) {
       setFormError("Ingresá un teléfono o WhatsApp válido para el contacto visible.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
+   if (!emailPattern.test(ownerEmail)) {
+  setFormError("Ingresá un email válido para recibir la aprobación.");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  return;
+}
+
    if (contactEmail && !emailPattern.test(contactEmail)) {
   setFormError("Ingresá un email visible válido o dejalo vacío.");
+  window.scrollTo({ top: 0, behavior: "smooth" });
   return;
 }
 
@@ -414,7 +469,7 @@ window.scrollTo({ top: 0, behavior: "smooth" });
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-5">
+        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-12 gap-5">
           <div className="col-span-12 space-y-5 xl:col-span-8">
             <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
               <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -626,26 +681,6 @@ window.scrollTo({ top: 0, behavior: "smooth" });
               </div>
             </section>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="reset"
-                className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-              >
-                Limpiar
-              </button>
-              <button
-  type="submit"
-  disabled={isSubmitting}
-  className={[
-    "rounded-xl px-6 py-3 text-sm font-medium text-[#0b1f33] transition",
-    isSubmitting
-      ? "cursor-not-allowed bg-gray-300 opacity-70"
-      : "bg-[#f5c400] hover:bg-[#ffd633]",
-  ].join(" ")}
->
-  {isSubmitting ? "Enviando..." : "Enviar a revisión"}
-</button>
-            </div>
           </div>
 
           <aside className="col-span-12 space-y-4 xl:col-span-4">
@@ -732,6 +767,33 @@ window.scrollTo({ top: 0, behavior: "smooth" });
               </p>
             </section>
           </aside>
+
+          <div className="col-span-12 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="reset"
+              onClick={() => {
+                setFormError("");
+                setPreviewImages([]);
+                setSelectedBrand("");
+                setSelectedModel("");
+              }}
+              className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Limpiar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={[
+                "rounded-xl px-6 py-3 text-sm font-medium text-[#0b1f33] transition",
+                isSubmitting
+                  ? "cursor-not-allowed bg-gray-300 opacity-70"
+                  : "bg-[#f5c400] hover:bg-[#ffd633]",
+              ].join(" ")}
+            >
+              {isSubmitting ? "Enviando..." : "Enviar a revisión"}
+            </button>
+          </div>
         </form>
       </section>
     </main>

@@ -8,6 +8,7 @@ import {
   marcasArgentina,
   modelosArgentina,
   opcionesAvanzadas,
+  provinciasArgentina,
   versionesPorModelo,
 } from "@/data/catalogs";
 import { getScoreLabel } from "@/utils/score";
@@ -100,6 +101,29 @@ const normalize = (value: string) =>
 const matchesOption = (value: string, filter: string) =>
   !filter || normalize(value) === normalize(filter);
 
+const capitalFederalAliases = new Set([
+  "capital",
+  "capital federal",
+  "caba",
+  "ciudad autonoma de buenos aires",
+]);
+
+function matchesCity(vehicle: Vehicle, filter: string) {
+  const cityFilter = normalize(filter);
+  if (!cityFilter) return true;
+
+  if (capitalFederalAliases.has(cityFilter)) {
+    return (
+      normalize(vehicle.province) === "ciudad autonoma de buenos aires" ||
+      normalize(vehicle.city) === "ciudad autonoma de buenos aires" ||
+      normalize(vehicle.city) === "capital federal" ||
+      normalize(vehicle.city) === "caba"
+    );
+  }
+
+  return normalize(vehicle.city).includes(cityFilter);
+}
+
 const matchesNumber = (
   value: number,
   minFilter: string,
@@ -129,6 +153,7 @@ function SelectField({
   options,
   placeholder,
   disabled = false,
+  showPlaceholder = true,
   onChange,
 }: {
   label: string;
@@ -136,6 +161,7 @@ function SelectField({
   options: string[];
   placeholder: string;
   disabled?: boolean;
+  showPlaceholder?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
@@ -149,7 +175,7 @@ function SelectField({
         onChange={(event) => onChange(event.target.value)}
         className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm outline-none transition focus:border-[#063b75] focus:ring-2 focus:ring-[#063b75]/10 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
       >
-        <option value="">{placeholder}</option>
+        {showPlaceholder && <option value="">{placeholder}</option>}
         {options.map((option) => (
           <option key={option} value={option}>
             {optionLabels[option] || option}
@@ -963,10 +989,7 @@ export default function PublicVehicleSearch({
     [filters.model]
   );
 
-  const provinces = useMemo(
-    () => unique(vehicles.map((vehicle) => vehicle.province)),
-    [vehicles]
-  );
+  const provinces = provinciasArgentina;
 
   const fuels = useMemo(
     () =>
@@ -987,8 +1010,6 @@ export default function PublicVehicleSearch({
 
   const results = useMemo(() => {
     const filtered = vehicles.filter((vehicle) => {
-      const cityFilter = normalize(activeFilters.city);
-
       return (
         matchesOption(vehicle.brand, activeFilters.brand) &&
         matchesOption(vehicle.model, activeFilters.model) &&
@@ -998,7 +1019,7 @@ export default function PublicVehicleSearch({
         (!activeFilters.kilometersMax ||
           vehicle.kilometers <= Number(activeFilters.kilometersMax)) &&
         matchesOption(vehicle.province, activeFilters.province) &&
-        (!cityFilter || normalize(vehicle.city).includes(cityFilter)) &&
+        matchesCity(vehicle, activeFilters.city) &&
         matchesOption(vehicle.fuel, activeFilters.fuel) &&
         matchesOption(vehicle.transmission, activeFilters.transmission) &&
         matchesOption(vehicle.color, activeFilters.color) &&
@@ -1159,7 +1180,7 @@ const openDetailAtImage = (car: Vehicle) => {
                   <input
                     type="text"
                     value={filters.city}
-                    placeholder="Ciudad"
+                    placeholder="Todas"
                     onChange={(event) => setFilter("city", event.target.value)}
                     className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm outline-none transition placeholder:text-gray-400 focus:border-[#063b75] focus:ring-2 focus:ring-[#063b75]/10"
                   />
@@ -1197,6 +1218,7 @@ const openDetailAtImage = (car: Vehicle) => {
                   value={filters.sortBy}
                   options={["score", "priceAsc", "priceDesc", "kmAsc", "yearDesc"]}
                   placeholder="Mejor score"
+                  showPlaceholder={false}
                   onChange={(value) => setFilter("sortBy", value || "score")}
                 />
               </div>
