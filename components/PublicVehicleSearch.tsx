@@ -1055,7 +1055,7 @@ const openDetailAtImage = (car: Vehicle) => {
   return (
     <>
       <section id="buscar" className="-mt-6 px-4">
-        <div className="mx-auto max-w-6xl rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="mx-auto max-w-6xl rounded-[28px] border border-slate-300 bg-white p-6 shadow-[0_22px_55px_rgba(3,27,52,0.28)] ring-1 ring-slate-400/35">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
               <h2 className="text-2xl font-black text-[#0b1f33]">
