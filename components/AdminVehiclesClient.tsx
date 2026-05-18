@@ -11,14 +11,12 @@ import {
   getStoredListings,
   hideBaseVehicle,
   removeListing,
-  updateListing,
   upsertListing,
   type ManagedVehicle,
 } from "@/utils/listings";
 import {
   deleteRemoteListing,
   fetchRemoteListings,
-  updateRemoteListing,
   upsertRemoteListing,
 } from "@/utils/listingsRemote";
 
@@ -89,6 +87,11 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
   const [searchMessage, setSearchMessage] = useState("");
   const [hiddenBaseIndexes, setHiddenBaseIndexes] = useState<number[]>([]);
   const [isLoadingInventory, setIsLoadingInventory] = useState(true);
+  const [approvingListingId, setApprovingListingId] = useState<string | null>(null);
+  const [approvalError, setApprovalError] = useState("");
+  const [approvalErrorListingId, setApprovalErrorListingId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -194,22 +197,47 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
 
   const totalInventoryCount = visibleBaseVehicleCount + listings.length;
 
-  function approveListing(listingId: string) {
-    const updatedListings = updateListing(listingId, (listing) => ({
-      ...listing,
+  async function approveListing(listingId: string) {
+    const listingToApprove = listings.find((item) => item.id === listingId);
+    if (!listingToApprove || approvingListingId) return;
+
+    const now = new Date().toISOString();
+    const approvedListing: ManagedVehicle = {
+      ...listingToApprove,
       publicationStatus: "approved",
-      approvedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }));
-    setListings(updatedListings);
+      approvedAt: listingToApprove.approvedAt || now,
+      updatedAt: now,
+    };
 
-    const approvedListing = updatedListings.find((item) => item.id === listingId);
-    if (approvedListing) {
-      if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-        void updateRemoteListing(approvedListing);
-      }
+    setApprovingListingId(listingId);
+    setApprovalError("");
+    setApprovalErrorListingId(null);
 
-      window.location.assign(createApprovalMailto(approvedListing));
+    try {
+      const remoteListing = process.env.NEXT_PUBLIC_SUPABASE_URL
+        ? await upsertRemoteListing(approvedListing)
+        : approvedListing;
+      const nextListing = remoteListing || approvedListing;
+      const updatedListings = upsertListing(nextListing);
+
+      setListings((currentListings) =>
+        mergeListings(
+          currentListings.map((item) =>
+            item.id === listingId ? nextListing : item
+          ),
+          updatedListings
+        )
+      );
+      window.location.assign(createApprovalMailto(nextListing));
+    } catch (error) {
+      setApprovalError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo aprobar el vehículo."
+      );
+      setApprovalErrorListingId(listingId);
+    } finally {
+      setApprovingListingId(null);
     }
   }
 
@@ -442,9 +470,10 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
                       <button
                         type="button"
                         onClick={() => approveListing(car.id)}
-                        className="rounded-xl bg-[#063b75] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#052f5f]"
+                        disabled={approvingListingId !== null}
+                        className="rounded-xl bg-[#063b75] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#052f5f] disabled:cursor-wait disabled:bg-[#063b75]/70"
                       >
-                        Aprobar
+                        {approvingListingId === car.id ? "Aprobando..." : "Aprobar"}
                       </button>
                     )}
                     <Link
@@ -469,6 +498,13 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
                       </button>
                     )}
                   </div>
+                  {approvalError &&
+                    approvalErrorListingId === car.id &&
+                    approvingListingId === null && (
+                    <p className="basis-full text-sm font-semibold text-red-600">
+                      {approvalError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
