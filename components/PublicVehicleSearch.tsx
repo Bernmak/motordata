@@ -490,20 +490,20 @@ function VehicleDetailModal({
                 <button
                   type="button"
                   onClick={showPreviousImage}
-                  className="group absolute inset-y-0 left-5 z-20 flex w-12 items-center justify-center md:left-8 md:w-14"
+                  className="group absolute inset-y-0 left-1 z-20 flex w-8 items-center justify-center md:left-3 md:w-10"
                   aria-label="Imagen anterior"
                 >
-                  <span className="text-8xl font-medium text-[#f5c400] drop-shadow-[0_4px_8px_rgba(0,0,0,0.65)]">
+                  <span className="text-5xl font-normal text-[#f5c400] drop-shadow-[0_3px_6px_rgba(0,0,0,0.6)] md:text-6xl">
   ‹
 </span>
                 </button>
                 <button
                   type="button"
                   onClick={showNextImage}
-                  className="group absolute inset-y-0 right-5 z-20 flex w-12 items-center justify-center md:right-8 md:w-14"
+                  className="group absolute inset-y-0 right-1 z-20 flex w-8 items-center justify-center md:right-3 md:w-10"
                   aria-label="Imagen siguiente"
                 >
-                  <span className="text-8xl font-medium text-[#f5c400] drop-shadow-[0_4px_8px_rgba(0,0,0,0.65)]">
+                  <span className="text-5xl font-normal text-[#f5c400] drop-shadow-[0_3px_6px_rgba(0,0,0,0.6)] md:text-6xl">
   ›
 </span>
                 </button>
