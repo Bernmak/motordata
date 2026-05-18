@@ -289,6 +289,23 @@ function isSameVehicleIdentity(currentVehicle: Vehicle, nextVehicle: Vehicle) {
   );
 }
 
+function getVehicleResultKey(car: Vehicle, index: number) {
+  return (
+    car.id ||
+    [
+      car.brand,
+      car.model,
+      car.version,
+      car.year,
+      car.price,
+      car.kilometers,
+      car.province,
+      car.city,
+      index,
+    ].join("|")
+  );
+}
+
 function VehicleDetailModal({
   car,
   selectedImageIndex,
@@ -973,9 +990,9 @@ export default function PublicVehicleSearch({
       const cityFilter = normalize(activeFilters.city);
 
       return (
-        (!activeFilters.brand || vehicle.brand === activeFilters.brand) &&
-        (!activeFilters.model || vehicle.model === activeFilters.model) &&
-        (!activeFilters.version || vehicle.version === activeFilters.version) &&
+        matchesOption(vehicle.brand, activeFilters.brand) &&
+        matchesOption(vehicle.model, activeFilters.model) &&
+        matchesOption(vehicle.version, activeFilters.version) &&
         matchesNumber(vehicle.price, activeFilters.priceMin, activeFilters.priceMax) &&
         matchesNumber(vehicle.year, activeFilters.yearMin, activeFilters.yearMax) &&
         (!activeFilters.kilometersMax ||
@@ -998,13 +1015,22 @@ export default function PublicVehicleSearch({
     });
   }, [activeFilters, vehicles]);
 
+  const resultsListKey = useMemo(
+    () => `${searchCount}-${JSON.stringify(activeFilters)}`,
+    [activeFilters, searchCount]
+  );
+
   const clearFilters = () => {
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
     setSearchCount(0);
+    setSelectedVehicle(null);
+    setSelectedImageIndex(0);
   };
 
   const searchVehicles = () => {
+    setSelectedVehicle(null);
+    setSelectedImageIndex(0);
     setActiveFilters(filters);
     setSearchCount((current) => current + 1);
   };
@@ -1216,10 +1242,10 @@ const openDetailAtImage = (car: Vehicle) => {
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div key={resultsListKey} className="space-y-5">
             {results.map((car, index) => (
               <div
-                key={`${car.brand}-${car.model}-${car.version}-${car.year}`}
+                key={getVehicleResultKey(car, index)}
                 ref={index === 0 ? firstResultRef : undefined}
               >
                 <VehicleResultCard

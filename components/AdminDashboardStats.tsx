@@ -20,6 +20,7 @@ export default function AdminDashboardStats({
 }: AdminDashboardStatsProps) {
   const [listings, setListings] = useState<ManagedVehicle[]>([]);
   const [hiddenBaseIndexes, setHiddenBaseIndexes] = useState<number[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,11 +48,12 @@ export default function AdminDashboardStats({
         if (cancelled) return;
 
         setListings(localListings);
+      } finally {
+        if (!cancelled) {
+          setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
+          setIsLoadingStats(false);
+        }
       }
-
-      if (cancelled) return;
-
-      setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
     }
 
     loadDashboardVehicles();
@@ -89,7 +91,7 @@ export default function AdminDashboardStats({
           Vehículos en inventario
         </p>
         <p className="mt-2 text-4xl font-black text-[#063b75]">
-          {dashboardVehicles.length}
+          {isLoadingStats ? "..." : dashboardVehicles.length}
         </p>
       </div>
 
@@ -103,7 +105,7 @@ export default function AdminDashboardStats({
       <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
         <p className="text-sm font-bold text-gray-500">Score promedio</p>
         <p className="mt-2 text-4xl font-black text-[#063b75]">
-          {averageScore.toFixed(2)}
+          {isLoadingStats ? "..." : averageScore.toFixed(2)}
         </p>
       </div>
     </div>

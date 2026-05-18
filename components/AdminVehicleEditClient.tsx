@@ -17,10 +17,11 @@ import VehicleImage from "@/components/VehicleImage";
 import {
   getStoredListings,
   imageFileToStoredDataUrl,
-  updateListing,
+  upsertListing,
   type ManagedVehicle,
 } from "@/utils/listings";
-import { updateRemoteListing } from "@/utils/listingsRemote";
+import { sanitizeManagedVehicle } from "@/utils/listingSanitizer";
+import { fetchRemoteListings, updateRemoteListing } from "@/utils/listingsRemote";
 
 type PreviewImage = {
   id: string;
@@ -159,28 +160,84 @@ export default function AdminVehicleEditClient({
   const [selectedModel, setSelectedModel] = useState("");
   const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingListing, setIsLoadingListing] = useState(true);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const storedListing = getStoredListings().find(
-        (item) => item.id === vehicleId
-      );
+    let cancelled = false;
 
-      setListing(storedListing || null);
-      setSelectedBrand(storedListing?.brand || "");
-      setSelectedModel(storedListing?.model || "");
+    async function loadListing() {
+      const localListings = getStoredListings();
+
+      try {
+        const remoteListings = process.env.NEXT_PUBLIC_SUPABASE_URL
+          ? await fetchRemoteListings()
+          : [];
+        const mergedListings = Array.from(
+          new Map(
+            [...localListings, ...remoteListings].map((item) => [item.id, item])
+          ).values()
+        );
+        const storedListing = mergedListings.find((item) => item.id === vehicleId);
+        const sanitizedListing = storedListing
+          ? sanitizeManagedVehicle(storedListing)
+          : null;
+
+        if (cancelled) return;
+
+        setListing(sanitizedListing);
+        setSelectedBrand(sanitizedListing?.brand || "");
+        setSelectedModel(sanitizedListing?.model || "");
+        setPreviewImages(
+          (sanitizedListing?.images || []).map((image, index) => ({
+            id: `${sanitizedListing?.id || "image"}-${index}`,
+            name: `Imagen ${index + 1}`,
+            url: image,
+          }))
+        );
+      } catch {
+        const storedListing = localListings.find((item) => item.id === vehicleId);
+        const sanitizedListing = storedListing
+          ? sanitizeManagedVehicle(storedListing)
+          : null;
+
+        if (cancelled) return;
+
+        setListing(sanitizedListing);
+        setSelectedBrand(sanitizedListing?.brand || "");
+        setSelectedModel(sanitizedListing?.model || "");
+        setPreviewImages(
+          (sanitizedListing?.images || []).map((image, index) => ({
+            id: `${sanitizedListing?.id || "image"}-${index}`,
+            name: `Imagen ${index + 1}`,
+            url: image,
+          }))
+        );
+      } finally {
+        if (!cancelled) setIsLoadingListing(false);
+      }
+    }
+
+    loadListing();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [vehicleId]);
+
+  function setEditableListing(nextListing: ManagedVehicle | null) {
+    setListing(nextListing);
+    setSelectedBrand(nextListing?.brand || "");
+    setSelectedModel(nextListing?.model || "");
       setPreviewImages(
-        (storedListing?.images || []).map((image, index) => ({
-          id: `${storedListing?.id || "image"}-${index}`,
+        (nextListing?.images || []).map((image, index) => ({
+          id: `${nextListing?.id || "image"}-${index}`,
           name: `Imagen ${index + 1}`,
           url: image,
         }))
       );
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [vehicleId]);
+  }
 
   const modelosFiltrados = useMemo(
     () => (selectedBrand ? modelosArgentina[selectedBrand] || [] : []),
@@ -196,7 +253,7 @@ export default function AdminVehicleEditClient({
     return [currentValue, ...options];
   }
 
-  function saveVehicle(event: React.FormEvent<HTMLFormElement>) {
+  async function saveVehicle(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!listing) return;
     if (isUploadingImages) {
@@ -204,14 +261,17 @@ export default function AdminVehicleEditClient({
       return;
     }
 
+    setIsSaving(true);
+    setFormError("");
+
     const formData = new FormData(event.currentTarget);
     const publicationStatus = String(
       formData.get("publicationStatus") || listing.publicationStatus
     ) as ManagedVehicle["publicationStatus"];
 
     try {
-      const updatedListings = updateListing(listing.id, (currentListing) => ({
-        ...currentListing,
+      const updatedListing: ManagedVehicle = {
+        ...listing,
         brand: String(formData.get("brand") || ""),
         model: String(formData.get("model") || ""),
         version: String(formData.get("version") || ""),
@@ -267,20 +327,23 @@ export default function AdminVehicleEditClient({
         publicationStatus,
         approvedAt:
           publicationStatus === "approved"
-            ? currentListing.approvedAt || new Date().toISOString()
-            : currentListing.approvedAt,
+            ? listing.approvedAt || new Date().toISOString()
+            : listing.approvedAt,
         images:
           previewImages.length > 0
             ? previewImages.map((image) => image.url)
             : ["/placeholder-car.svg"],
         updatedAt: new Date().toISOString(),
-      }));
+      };
 
-      const updatedListing = updatedListings.find((item) => item.id === listing.id);
-      if (updatedListing && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-        void updateRemoteListing(updatedListing);
+      upsertListing(updatedListing);
+      setEditableListing(updatedListing);
+
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        await updateRemoteListing(updatedListing);
       }
 
+      router.refresh();
       router.push(`/admin/autos/${encodeURIComponent(listing.id)}`);
     } catch (error) {
       setFormError(
@@ -288,6 +351,8 @@ export default function AdminVehicleEditClient({
           ? error.message
           : "No se pudo guardar el vehículo."
       );
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -305,6 +370,25 @@ export default function AdminVehicleEditClient({
           <p className="mt-2 text-sm leading-6 text-gray-500">
             Los vehículos de la base importada se editan modificando la base de
             datos local o el CSV de origen.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (isLoadingListing) {
+    return (
+      <section>
+        <Link
+          href="/admin/autos"
+          className="inline-flex rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700"
+        >
+          Volver al inventario
+        </Link>
+        <div className="mt-6 rounded-2xl bg-white p-6 ring-1 ring-gray-200">
+          <h2 className="text-2xl font-black">Cargando ficha de edición...</h2>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Estamos leyendo los datos completos desde la base.
           </p>
         </div>
       </section>
@@ -567,10 +651,14 @@ export default function AdminVehicleEditClient({
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isUploadingImages}
+              disabled={isUploadingImages || isSaving}
               className="rounded-xl bg-[#063b75] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#052f5f] disabled:cursor-not-allowed disabled:bg-gray-400"
             >
-              {isUploadingImages ? "Cargando fotos..." : "Guardar cambios"}
+              {isUploadingImages
+                ? "Cargando fotos..."
+                : isSaving
+                  ? "Guardando..."
+                  : "Guardar cambios"}
             </button>
           </div>
         </div>

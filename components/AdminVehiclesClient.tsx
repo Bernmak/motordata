@@ -88,24 +88,61 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [searchMessage, setSearchMessage] = useState("");
   const [hiddenBaseIndexes, setHiddenBaseIndexes] = useState<number[]>([]);
+  const [isLoadingInventory, setIsLoadingInventory] = useState(true);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const localListings = getStoredListings();
-      setListings(localListings);
-      setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
+    let cancelled = false;
 
+    async function loadInventory() {
+      const localListings = getStoredListings();
+
+      try {
+        let nextListings = localListings;
+
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const remoteListings = await fetchRemoteListings();
+          nextListings = mergeListings(localListings, remoteListings);
+        }
+
+        if (cancelled) return;
+
+        setListings(nextListings);
+      } catch {
+        if (cancelled) return;
+
+        setListings(localListings);
+      }
+
+      if (cancelled) return;
+
+      setHiddenBaseIndexes(getHiddenBaseVehicleIndexes());
+      setIsLoadingInventory(false);
+    }
+
+    loadInventory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || isLoadingInventory) return;
+
+    const interval = window.setInterval(() => {
       if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
         fetchRemoteListings()
           .then((remoteListings) =>
-            setListings(mergeListings(localListings, remoteListings))
+            setListings((currentListings) =>
+              mergeListings(currentListings, remoteListings)
+            )
           )
-          .catch(() => setListings(localListings));
+          .catch(() => undefined);
       }
-    }, 0);
+    }, 30000);
 
-    return () => window.clearTimeout(timer);
-  }, []);
+    return () => window.clearInterval(interval);
+  }, [isLoadingInventory]);
 
   const filteredListings = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -261,9 +298,9 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
             Administración de vehículos
           </h2>
           <p className="mt-2 text-white/65">
-            {totalInventoryCount} vehículos en inventario:{" "}
-            {visibleBaseVehicleCount} de base local y {listings.length}{" "}
-            gestionados.
+            {isLoadingInventory
+              ? "Cargando inventario completo..."
+              : `${totalInventoryCount} vehículos en inventario: ${visibleBaseVehicleCount} de base local y ${listings.length} gestionados.`}
           </p>
         </div>
 
@@ -329,7 +366,9 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
           <div className="md:col-span-4">
             <div className="flex min-h-10 flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
               <p className="font-bold text-[#7a6100]">
-                {filteredListings.length + filteredVehicles.length} resultados
+                {isLoadingInventory
+                  ? "Cargando resultados..."
+                  : `${filteredListings.length + filteredVehicles.length} resultados`}
               </p>
               {searchMessage && (
                 <p className="font-semibold text-red-600">{searchMessage}</p>
@@ -343,7 +382,13 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
       </form>
 
       <div className="mt-6 space-y-4">
-        {filteredListings.map((car, index) => (
+        {isLoadingInventory && (
+          <div className="rounded-2xl bg-white p-6 text-sm font-semibold text-gray-500 ring-1 ring-gray-200">
+            Cargando inventario completo desde la base de datos...
+          </div>
+        )}
+
+        {!isLoadingInventory && filteredListings.map((car, index) => (
           <article
             key={car.id}
             className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md"
@@ -430,13 +475,15 @@ export default function AdminVehiclesClient({ vehicles }: AdminVehiclesClientPro
           </article>
         ))}
 
-        {filteredListings.length === 0 && filteredVehicles.length === 0 && (
+        {!isLoadingInventory &&
+          filteredListings.length === 0 &&
+          filteredVehicles.length === 0 && (
           <div className="rounded-2xl bg-white p-6 text-sm text-gray-500 ring-1 ring-gray-200">
             No hay vehículos para ese filtro.
           </div>
         )}
 
-        {filteredVehicles.map(({ vehicle: car, index }) => (
+        {!isLoadingInventory && filteredVehicles.map(({ vehicle: car, index }) => (
           <article
             key={`base-${index}-${makeVehicleKey(car)}`}
             className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md"

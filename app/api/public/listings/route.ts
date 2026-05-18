@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { ManagedVehicle } from "@/utils/listings";
+import { sanitizeManagedVehicle } from "@/utils/listingSanitizer";
 
 type ListingRow = {
   id: string;
@@ -11,13 +12,13 @@ type ListingRow = {
 };
 
 function rowToListing(row: ListingRow): ManagedVehicle {
-  return {
+  return sanitizeManagedVehicle({
     ...row.data,
     id: row.id,
     publicationStatus: row.publication_status,
     createdAt: row.data.createdAt || row.created_at,
     updatedAt: row.data.updatedAt || row.updated_at,
-  };
+  });
 }
 
 export async function GET() {
@@ -37,7 +38,14 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({
-    listings: ((data || []) as ListingRow[]).map(rowToListing),
-  });
+  return NextResponse.json(
+    {
+      listings: ((data || []) as ListingRow[]).map(rowToListing),
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    }
+  );
 }

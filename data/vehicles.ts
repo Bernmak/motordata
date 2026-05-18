@@ -15,7 +15,7 @@ export const vehicles: Vehicle[] = [
     transmission: "Automática",
     color: "No informado",
     score: 1.12,
-    images: ["/cars/ranger.jpg","https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1400&q=80"],
+    images: ["/cars/ranger.jpg"],
   },
   {
     brand: "Volkswagen",
